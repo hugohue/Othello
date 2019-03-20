@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-////////////////// function:           print_board //////////////////
+////////////////// function: print_board //////////////////
 
 void print_board(int board[8][8]) {
 int r, c, i, j, k, map[8][8] ;
@@ -23,10 +23,10 @@ printf("     0   1   2   3   4   5   6   7  \n");
         printf("   +---+---+---+---+---+---+---+---+\n");
     }
 
-////////////////// function:    print_game_details //////////////////
+////////////////// function: print_game_details //////////////////
 
 void print_game_details(int board[8][8], int current_player) {
-	int c1, c2, i, j;
+	int c1=0, c2=0, i, j;
 	char player;
 	/*
 		Purpose: print the game details as described in
@@ -50,7 +50,7 @@ void print_game_details(int board[8][8], int current_player) {
 	printf("Current Turn:  %c\n\n", player);
 }
 
-////////////////// function:             need_pass //////////////////
+////////////////// function: need_pass //////////////////
 
 int need_pass(int board[8][8], int current_player) {
 	/*
@@ -61,13 +61,19 @@ int need_pass(int board[8][8], int current_player) {
 		0: can find at least one cell.
 		1: cannot find any cell.
 	*/
-	return 0;
+	int i, j;
+	for (i=0; i<8; i++)
+		for (j=0; j<8; j++)
+			if (can_flip_opponent(board, i, j, current_player) == 1)
+				return 0;
+				
+	return 1;
 }
 
 
-////////////////// function:          is_end_game //////////////////
+////////////////// function: is_end_game //////////////////
 
-int is_end_game(int board[8][8]) {
+int is_end_game(int board[8][8], int current_player) {
 	/*
 		Purpose: to determine if the game has been ended or not
 
@@ -75,7 +81,13 @@ int is_end_game(int board[8][8]) {
 		0: false, i.e., the game is not ended.
 		1: true,  i.e., the game is ended.
 	*/
-	return 0;
+	int i, j;
+	int opponent=2;
+	if (current_player==2)	
+		opponent=1;
+	if ((need_pass(board,current_player)==1)&&(need_pass(board,opponent)==1))
+		return 1;
+	else return 0;
 }
 
 ////////////////// function: is_wrong_input_range //////////////////
@@ -93,7 +105,7 @@ int is_wrong_input_range(int row, int col) {
 	*/
 }
 
-////////////////// function:        is_empty_cell //////////////////
+////////////////// function: is_empty_cell //////////////////
 
 int is_empty_cell(int board[8][8], int row, int col) {
 	if (board[row][col]!=0)
@@ -108,84 +120,33 @@ int is_empty_cell(int board[8][8], int row, int col) {
 	*/
 }
 
-////////////////// function:    can_flip_opponent //////////////////
+////////////////// function: can_flip_opponent //////////////////
 
-int can_flip_opponent(int board[8][8], int row, int col, int current_player) {
-	int next, col_k, row_k, next_r, next_c;
-	col_k=col;
-	row_k=row;
-	next=col_k+1;
-	for (col=col_k+2; col<7 ; col++)
-		if (((board[row_k][next]!=current_player)&&(board[row_k][next]!=0))&&(board[row_k][col]==current_player))
-		{printf("%d%d%d",board[row_k][next],current_player, board[row_k][col]);
-			return 0;
+int can_flip_opponent(int board[8][8], int row, int col, int current_player) 
+{
+	int opponent=2;
+	int dx, dy, r, c, num;
+	if (current_player==2)	
+		opponent=1;
+	for (dx=-1; dx<2; dx++)
+		for  (dy=-1; dy<2; dy++)
+		{
+			if (dx==0 && dy==0)	continue;
+			r = row + dx;
+			c = col + dy;
+			num=0;
+			while( !is_wrong_input_range(r,c) && board[r][c]==opponent) 
+			{
+				r = r + dx;
+				c = c + dy;
+				num++;
+			}
+			if (num==0)	continue;
+			if (!is_wrong_input_range(r,c) && board[r][c]==current_player)
+				return 1;
 		}
-	// right
-	next=col_k-1;
-	for (col=col_k-2; col>0; col--)
-		if (((board[row_k][next]!=current_player)&&(board[row_k][next]!=0))&&(board[row_k][col]==current_player))
-			return 0;
-	//left
-	next=row_k-1;
-	for (row=row_k-2; row>0; row--)
-		if (((board[next][col_k]!=current_player)&&(board[next][col_k]!=0))&&(board[row][col_k]==current_player))
-			return 0;
-	//top
-	next=row_k+1;
-	for (row=row_k+2; row<7; row++)
-		if (((board[next][col_k]!=current_player)&&(board[next][col_k]!=0))&&(board[row][col_k]==current_player))
-			return 0;
-	//down
-	next_r=row_k-1;
-	next_c=col_k+1;
-	row=row_k-2;
-	col=col_k+2;
-	while ((row>0)&&(col<7))
-	{
-		if (((board[next_r][next_c]!=current_player)&&(board[next_r][next_c]!=0))&&(board[row][col]==current_player))
-			return 0;
-		row--;
-		col++;
-	}
-	//righttop
-	next_r=row_k+1;
-	next_c=col_k-1;
-	row=row_k+2;
-	col=col_k-2;
-	while ((row>0)&&(col<7))
-	{
-		if (((board[next_r][next_c]!=current_player)&&(board[next_r][next_c]!=0))&&(board[row][col]==current_player))
-			return 0;
-		row++;
-		col--;
-	}
-	//leftdown
-	next_r=row_k-1;
-	next_c=col_k-1;
-	row=row_k-2;
-	col=col_k-2;
-	while ((row>0)&&(col>0))
-	{
-		if (((board[next_r][next_c]!=current_player)&&(board[next_r][next_c]!=0))&&(board[row][col]==current_player))
-			return 0;
-		row--;
-		col--;
-	}
-	//lefttop
-	next_r=row_k+1;
-	next_c=col_k+1;
-	row=row_k+2;
-	col=col_k+2;
-	while ((row<6)&&(col<6))
-	{
-		if (((board[next_r][next_c]!=current_player)&&(board[next_r][next_c]!=0))&&((board[row][col]==current_player)))
-			return 0;
-		row++;
-		col++;
-	}
-	//rightdown 
-	printf("%d%d%d",board[next_r][next_c],current_player, board[row_k-2][col_k+2]);
-	return 1;
+	return 0;
+}
 	/*
 		Purpose: to determine the new disc in (row, col)
 		can flip any opponent's discs
@@ -195,9 +156,7 @@ int can_flip_opponent(int board[8][8], int row, int col, int current_player) {
 		1: yes, i.e., can flip.
 	*/
 	
-}
-
-////////////////// function:        flip_opponent //////////////////
+////////////////// function: flip_opponent //////////////////
 
 void flip_opponent(int board[8][8], int row, int col, int current_player) {
 	/*
@@ -208,91 +167,51 @@ void flip_opponent(int board[8][8], int row, int col, int current_player) {
 
 		No return value.
 	*/
-int next, col_k, row_k, next_r, next_c;
-	col_k=col;
-	row_k=row;
-	next=col_k+1;
-	for (col=col_k+2; col<7 ; col++)
-		if (((board[row_k][next]!=current_player)&&(board[row_k][next]!=0))&&(board[row_k][col]==current_player))
-			for (next; next<col; next++)
-				board[row_k][next]=current_player;
-
-	// right
-	next=col_k-1;
-	for (col=col_k-2; col>0; col--)
-		if (((board[row_k][next]!=current_player)&&(board[row_k][next]!=0))&&(board[row_k][col]==current_player))
-			for (next; next>col; next--)
-				board[row_k][next]=current_player;
-	//left
-	next=row_k-1;
-	for (row=row_k-2; row>0; row--)
-		if (((board[next][col_k]!=current_player)&&(board[next][col_k]!=0))&&(board[row][col_k]==current_player))
-			for (next; next<row; next--)
-				board[next][col_k]=current_player;
-	//top
-	next=row_k+1;
-	for (row=row_k+2; row<7; row++)
-		if (((board[next][col_k]!=current_player)&&(board[next][col_k]!=0))&&(board[row][col_k]==current_player))
-			for (next; next>row; next++)
-				board[next][col_k]=current_player;
-	//down
-	next_r=row_k-1;
-	next_c=col_k+1;
-	row=row_k-2;
-	col=col_k+2;
-	while ((row>0)&&(col<7))
-	{
-		if (((board[next_r][next_c]!=current_player)&&(board[next_r][next_c]!=0))&&(board[row][col]==current_player))
-			for (next_c && next_r; next_c>col && next_r<row ; next_r-- && next_c++)
-				board[next_r][next_c]=current_player;
-		row--;
-		col++;
-	}
-	//righttop
-	next_r=row_k+1;
-	next_c=col_k-1;
-	row=row_k+2;
-	col=col_k-2;
-	while ((row>0)&&(col<7))
-	{
-		if (((board[next_r][next_c]!=current_player)&&(board[next_r][next_c]!=0))&&(board[row][col]==current_player))
-			for (next_c && next_r; next_c<col && next_r>row ; next_r++ && next_c--)
-				board[next_r][next_c]=current_player;
-		row++;
-		col--;
-	}
-	//leftdown
-	next_r=row_k-1;
-	next_c=col_k-1;
-	row=row_k-2;
-	col=col_k-2;
-	while ((row>0)&&(col>0))
-	{
-		if (((board[next_r][next_c]!=current_player)&&(board[next_r][next_c]!=0))&&(board[row][col]==current_player))
-			for (next_c && next_r; next_c<col && next_r<row ; next_r-- && next_c--)
-				board[next_r][next_c]=current_player;
-		row--;
-		col--;
-	}
-	//lefttop
-	next_r=row_k+1;
-	next_c=col_k+1;
-	row=row_k+2;
-	col=col_k+2;
-	while ((row<6)&&(col<6))
-	{
-		if (((board[next_r][next_c]!=current_player)&&(board[next_r][next_c]!=0))&&((board[row][col]==current_player)))
-			for (next_c && next_r; next_c>col && next_r>row ; next_r++ && next_c++)
-				board[next_r][next_c]=current_player;
-		row++;
-		col++;
-	}
-	//rightdown 
+		int opponent=2;
+	int dx, dy, r,c,num;
+	if (current_player==2)	
+		opponent=1;
+	for (dx=-1; dx<2; dx++)
+		for  (dy=-1; dy<2; dy++)
+		{
+			if (dx==0 && dy==0)	continue;
+			r = row + dx;
+			c = col + dy;
+			num=0;
+			while( !is_wrong_input_range(r,c) && board[r][c]==opponent) 
+			{
+				r = r + dx;
+				c = c + dy;
+				num++;
+			}
+			if (num==0)	continue;
+			if (!is_wrong_input_range(r,c) && board[r][c]==current_player)
+			{
+				do{
+				r = r - dx;
+				c = c - dy;
+				board[r][c]=current_player;
+				} while(r!=row || c!=col);
+			}
+				
+		}
 }
-
-////////////////// function:         print_winner //////////////////
+////////////////// function: print_winner //////////////////
 
 void print_winner(int board[8][8]) {
+	int c1=0, c2=0, i, j;
+	for (i=0; i<8; i++)
+		for (j=0; j<8; j++)
+			if (board[i][j]==1)
+				c1++;
+				else if (board[i][j]==2)
+						c2++;
+	if (c1>c2)
+		printf("Winner: Player: O");
+	else if (c2<c1)
+		printf("Winner: Player: #");
+	else if (c2==c1)
+		printf("Draw");	
 	/*
 		Purpose:
 			- print number of 'O' in the board;
@@ -312,19 +231,13 @@ int main(int argc, char **argv) {
 	printf("Select Mode: [1. Normal Mode | 2. Debug Mode] ?\n");
 	scanf("%d", &mode);
 	/*
-	  Do your work below:
 
 		mode == 1: normal mode
 		mode == 2: debug mode
 
-		So, please initialize the board variable accordingly.
 	*/
 
 	if(mode == 1) {
-		/*
-			Initialize the board as instructed in
-			P.3 of the specification.
-		*/
 		for (row=0; row<8; row++)
 			for (col=0; col<8; col++)
 				board[row][col]=0;
@@ -337,9 +250,7 @@ int main(int argc, char **argv) {
 	}
 	else if(mode == 2) {
 		/*
-			Initialize the board based on the
-			input file format as described in
-			P.7 of the specification.
+			Preset for debuging
 		*/
 		for (row=0; row<8; row++)
 			for (col=0; col<8; col++)
@@ -372,7 +283,7 @@ int main(int argc, char **argv) {
 		print_board(board);
 		print_game_details(board, current_player);
 
-		if( is_end_game(board) == 1 ) {
+		if( is_end_game(board, current_player) == 1 ) {
 			stop = 1;
 		}
 
@@ -381,21 +292,21 @@ int main(int argc, char **argv) {
 		}
 		else {
 			/*
-				Inside the else body, you have several things to do.
+				Inside the else body, 
 
 				- Read input.
 
 				- Check if "row" & "col" are in the wrong input range
-				  [ Case 1, table in P.10 of specification ]
+				  
 
 				- If "row" & "col" are in the correct input range,
 				  check if (row, col) points to an empty cell
-				  [ Case 2, table in P.10 of specification ]
+				 
 
 				- If (row, col) points to an empty cell,
 				  check if the new disc in (row, col) can flip any
 				  opponent's discs
-				  [ Case 3, table in P.10 of specification ]
+				
 
 
 				When (row, col) passes all the above three tests,
@@ -421,7 +332,7 @@ int main(int argc, char **argv) {
 							printf("not empty\n");
 							all_test_pass = 0;
 						}
-						else if( can_flip_opponent(board, row, col, current_player) == 1 ) {
+						else if( can_flip_opponent(board, row, col, current_player) == 0 ) {
 							printf("cannot flip\n");
 							all_test_pass = 0;
 						}
@@ -435,12 +346,7 @@ int main(int argc, char **argv) {
 		} // end of else body //
 
 		/*
-			Important!!!!!!!!!!
-
-			You must change the current player before
-			going back to the start of the big game loop.
-
-			Add the code below!
+			Change of player
 		*/
 if (current_player==1)
 	current_player=2;
